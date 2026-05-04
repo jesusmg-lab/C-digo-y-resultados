@@ -1,1 +1,137 @@
+\documentclass[12pt]{book}
 
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+
+\usepackage{amsmath, amsthm, amsfonts}
+
+\usepackage{xcolor}
+
+\usepackage{listings}
+\lstset{
+  literate={á}{{\'a}}1
+           {é}{{\'e}}1
+           {í}{{\'i}}1
+           {ó}{{\'o}}1
+           {ú}{{\'u}}1
+           {ñ}{{\~n}}1
+           {ç}{{\c{c}}}1
+           {Á}{{\'A}}1
+           {É}{{\'E}}1
+           {Í}{{\'I}}1
+           {Ó}{{\'O}}1
+           {Ú}{{\'U}}1
+}
+
+\begin{document}
+
+\chapter{Código completo}
+
+En éste apéndice pondremos el código completo sin los comentarios que mencionamos en la sección 2.3.
+
+\begin{lstlisting}[caption={Carga de las paqueterias para la automatización, definición de la métrica (xTensor) y la carta (xCoba)}, label={lst:automatizacion-parametros}]
+In[]:= << xAct`xTensor`
+In[]:= << xAct`Invar`
+In[]:= Block[{Print}, << xAct`xTras`]
+In[]:= Block[{Print}, << xAct`xCoba`]
+
+In[]:= (*Definimos la variedad M*)
+In[]:= DefManifold[M, 4, IndexRange[a, l]] 
+In[]:= DefMetric[-1, metric[-a, -b], CD, PrintAs -> "g", 
+    CurvatureRelations -> True]
+
+In[]:= DefChart[base, M, {0, 1, 2, 3}, {t[], r[], \[Theta][], \[Phi][]}, 
+    ChartColor -> Red];    
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={}]
+In[]:= DefScalarFunction[F];
+In[]:= DefScalarFunction[A];
+In[]:= DefScalarFunction[Q];
+In[]:= DefScalarFunction[J];
+
+In[]:= PrintAs[A] ^= "a";
+In[]:= PrintAs[Q] ^= "n";
+In[]:= PrintAs[J] ^= "m";
+In[]:= PrintAs[F] ^= "f";
+
+In[]:= DefConstantSymbol[\[CapitalLambda]]
+In[]:= DefConstantSymbol[\[Beta]]
+
+In[]:= PrintAs[metric] ^= "g";
+In[]:= PrintAs[epsilonmetric] ^= "\     [Epsilon]";
+In[]:= PrintAs[RiemannCD] ^= "R";
+In[]:= PrintAs[RicciCD] ^= "R";
+In[]:= PrintAs[RicciScalarCD] ^= "R";
+In[]:= PrintAs[WeylCD] ^= "W";
+In[]:= PrintAs[TFRicciCD] ^= "S";
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[caption={Densidad lagrangiana y su variación respecto al métrica inversa}, label={lst:automatizacion-varlagrangian}]
+In[]:= LagrangianDensity = RicciScalarCD[];
+
+In[]:= EOMFirstEd = 
+     VarL[metric[a, b]][LagrangianDensity] // ContractMetric // 
+         FullSimplification[] // CollectTensors // ScreenDollarIndices;
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Métrica para xCoba}, label={lst:automatizacion-metrica-xcoba}]
+In[]:= eleccion = 
+    Input["Selecciona la Métrica:\n1 - FLRW (Cosmología)\n2 - Agujero \
+    Negro \n3 - Estrella "];
+
+     G = Switch[eleccion,(*OPCIÓN 1:FLRW *)1, 
+    Print["Has elegido: 1 - FLRW"];
+    CTensor[
+        DiagonalMatrix[{-1, (A[
+            t[]])^2, (A[t[]])^2 (r[])^2, (A[
+            t[]])^2 (r[])^2 (Sin[\[Theta][]])^2}], {-base, \
+    -base}],(*OPCIÓN 2:AGUJERO NEGRO *)2, 
+    Print["Has elegido: 2 - Agujero Negro "];
+    CTensor[
+        DiagonalMatrix[{-Q[r[]], Q[r[]]^-1, r[]^2, 
+        r[]^2 Sin[\[Theta][]]^2}], {-base, -base}],(*OPCIÓN 3:ESTRELLA *)
+    3, Print["Has elegido: 3 - Estrella "];
+    CTensor[
+        DiagonalMatrix[{-Q[r[]], J[r[]], r[]^2, 
+        r[]^2 Sin[\[Theta][]]^2}], {-base, -base}],(*Caso por defecto \
+    si escribes mal*)_, Abort[]];
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[caption={Cambiando la métrica para xCoba}]
+In[]:= UnsetCMetric[metric];
+In[]:= SetCMetric[G, base, SignatureOfMetric -> {3, 1, 0}]; 
+In[]:= MetricCompute[G, base, All];
+In[]:= DC = LC[G]; 
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Cambiando los tensores de xTensor a xCoba}]
+In[]:= EOMThirdEd = {EOMFirstEd /. {metric -> G, 
+     RicciScalarCD -> RicciScalar[DC], RicciCD -> Ricci[DC], 
+     RiemannCD -> Riemann[DC]}}; 
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Cambiando del lenguaje de xCoba a Mathematica nativo}]
+In[]:= lenghtEOM = Length[EOMThirdEd];
+In[]:= Do[
+    variableEOM1 = ToBasis[base][FromBasisExpand[EOMThirdEd[[p]]]];
+    variableEOM2 = TraceBasisDummy /@ variableEOM1;
+     variableEOM3 = ComponentArray@variableEOM2;
+    variablesEOMseparated[p] = ToValues@variableEOM3, {p, 1, lenghtEOM}
+    ];
+\end{lstlisting}
+ 
+
+\begin{lstlisting}[caption={EOM $\mathcal{E}_{ab}$}]
+In[]:= eomdd = Simplify[Sum[variablesEOMseparated[p], {p, 1, lenghtEOM}]]
+\end{lstlisting}
+
+\end{document}
