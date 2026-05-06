@@ -1,2 +1,4 @@
-# C-digo-y-resultados
-Código y resultados de las EOM de orden cúbico y cuártico de la teoría gravitacional Cosmología Geométrica 
+# Código y resultados
+El código es el archivo ObtencionEOM-Usando xAct.nb, ese mismo código está escrito en formato LaTex en codigo.tex.
+
+Los resultaos se encuentran en formato LaTex en resultaos.tex
